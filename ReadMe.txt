@@ -1,4 +1,1 @@
-Ejecutar con python 2 el archivo Main.py. 
-
-Nombre: Luis Pulido Alvarez
-Número de Cuenta: 311011920
+Primer esqueleto del proyecto para generar foto mosaicos.

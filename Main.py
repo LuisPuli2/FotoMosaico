@@ -8,6 +8,8 @@ from Imagen import *
 from Agua import cifra
 from Agua import decifra
 from Agua import filtroMosaico
+from Mosaico import getPromedioRGB
+
 
 # La interfaz principal.
 class Interfaz(Frame):
@@ -37,6 +39,7 @@ class Interfaz(Frame):
         self.comboboxFiltro.add_command(label="Cifrar imagen", command=  self.procesa)
         self.comboboxFiltro.add_command(label="Decifrar imagen", command= lambda: self.decifra())
         self.comboboxFiltro.add_command(label="Mosaico con Cubo Rubik", command= lambda: self.aplicaRubik())
+        self.comboboxFiltro.add_command(label="Foto Mosaico", command= lambda: self.aplicaMosaico())
 
         self.barra_Menu.add_cascade(label="Filtros", menu=self.comboboxFiltro)
         self.barra_Menu.add_command(label="Salir", command = self.salir)
@@ -109,10 +112,20 @@ class Interfaz(Frame):
         else:
             tkMessageBox.showwarning("Error","Escoge una imagen antes de aplicar un filtro")
 
-    # PAra cubo Rubik
+    # Para cubo Rubik
     def aplicaRubik (self):
         if self.FiltroImagen.find_all() != ():
             self.nuevaImagen = filtroMosaico(self.img,1,1)
+            imagenCambia = ImageTk.PhotoImage(self.nuevaImagen)
+            self.FiltroImagen.imagenes1 = imagenCambia
+            self.FiltroImagen.create_image(imagenCambia.width()/2, imagenCambia.height()/2, anchor=CENTER, image=imagenCambia, tags="bg_img")   
+        else:
+            tkMessageBox.showwarning("Error","Elige una imagen antes de aplicar un filtro")
+
+    # Para foto mosaico
+    def aplicaMosaico(self):
+        if self.FiltroImagen.find_all() != ():
+            self.nuevaImagen = getPromedioRGB(self.img)
             imagenCambia = ImageTk.PhotoImage(self.nuevaImagen)
             self.FiltroImagen.imagenes1 = imagenCambia
             self.FiltroImagen.create_image(imagenCambia.width()/2, imagenCambia.height()/2, anchor=CENTER, image=imagenCambia, tags="bg_img")   
