@@ -10,17 +10,27 @@ def debug(msg):
 
 # El nodo.
 class Node():
-    def __init__(self, key):
-        self.key = key
+    def __init__(self, value):
+        self.value = value
         self.left = None 
-        self.right = None 
+        self.right = None
+
+    # Determina si tiene hijo derecho.
+    def hasRightChild(self):
+        return self.right.node != None
+
+    # Determina si tiene hijo izquierdo.
+    def hasLeftChild(self):
+        return self.left.node != None
 
 # El Árbol AVL.
 class AVLTree():
     def __init__(self, *args):
         self.node = None 
         self.height = -1  
-        self.balance = 0; 
+        self.balance = 0
+        # Adaptación del Duis 
+        self.isPoint = False
         
         if len(args) == 1: 
             for i in args[0]: 
@@ -34,34 +44,12 @@ class AVLTree():
     
     def is_leaf(self):
         return (self.height == 0) 
-    
-    def insert(self, key):
-        tree = self.node
-        
-        newnode = Node(key)
-        
-        if tree == None:
-            self.node = newnode 
-            self.node.left = AVLTree() 
-            self.node.right = AVLTree()
-            debug("Inserted key [" + str(key) + "]")
-        
-        elif key < tree.key: 
-            self.node.left.insert(key)
-            
-        elif key > tree.key: 
-            self.node.right.insert(key)
-        
-        else: 
-            debug("Key [" + str(key) + "] already in tree.")
-            
-        self.rebalance() 
         
     def rebalance(self):
         ''' 
         Rebalance a particular (sub)tree
         ''' 
-        # key inserted. Let's check if we're balanced
+        # value inserted. Let's check if we're balanced
         self.update_heights(False)
         self.update_balances(False)
         while self.balance < -1 or self.balance > 1: 
@@ -87,7 +75,7 @@ class AVLTree():
             
     def rrotate(self):
         # Rotate left pivoting on self
-        debug ('Rotating ' + str(self.node.key) + ' right') 
+        debug ('Rotating ' + str(self.node.value) + ' right') 
         A = self.node 
         B = self.node.left.node 
         T = B.right.node 
@@ -99,7 +87,7 @@ class AVLTree():
     
     def lrotate(self):
         # Rotate left pivoting on self
-        debug ('Rotating ' + str(self.node.key) + ' left') 
+        debug ('Rotating ' + str(self.node.value) + ' left') 
         A = self.node 
         B = self.node.right.node 
         T = B.left.node 
@@ -134,11 +122,11 @@ class AVLTree():
         else: 
             self.balance = 0 
 
-    def delete(self, key):
-        # debug("Trying to delete at node: " + str(self.node.key))
+    def delete(self, value):
+        # debug("Trying to delete at node: " + str(self.node.value))
         if self.node != None: 
-            if self.node.key == key: 
-                debug("Deleting ... " + str(key))  
+            if self.node.value == value: 
+                debug("Deleting ... " + str(value))  
                 if self.node.left.node == None and self.node.right.node == None:
                     self.node = None # leaves can be killed at will 
                 # if only one subtree, take that 
@@ -151,18 +139,18 @@ class AVLTree():
                 else:  
                     replacement = self.logical_successor(self.node)
                     if replacement != None: # sanity check 
-                        debug("Found replacement for " + str(key) + " -> " + str(replacement.key))  
-                        self.node.key = replacement.key 
+                        debug("Found replacement for " + str(value) + " -> " + str(replacement.value))  
+                        self.node.value = replacement.value 
                         
-                        # replaced. Now delete the key from right child 
-                        self.node.right.delete(replacement.key)
+                        # replaced. Now delete the value from right child 
+                        self.node.right.delete(replacement.value)
                     
                 self.rebalance()
                 return  
-            elif key < self.node.key: 
-                self.node.left.delete(key)  
-            elif key > self.node.key: 
-                self.node.right.delete(key)
+            elif value < self.node.value: 
+                self.node.left.delete(value)  
+            elif value > self.node.value: 
+                self.node.right.delete(value)
                         
             self.rebalance()
         else: 
@@ -189,7 +177,7 @@ class AVLTree():
         if node != None: # just a sanity check  
             
             while node.left != None:
-                debug("LS: traversing: " + str(node.key))
+                debug("LS: traversing: " + str(node.value))
                 if node.left.node == None: 
                     return node 
                 else: 
@@ -214,7 +202,7 @@ class AVLTree():
         for i in l: 
             inlist.append(i) 
 
-        inlist.append(self.node.key)
+        inlist.append(self.node.value)
 
         l = self.node.right.inorder_traverse()
         for i in l: 
@@ -230,30 +218,132 @@ class AVLTree():
         self.update_heights()  # Must update heights before balances 
         self.update_balances()
         if(self.node != None): 
-            print '-' * level * 2, pref, self.node.key, "[" + str(self.height) + ":" + str(self.balance) + "]", 'L' if self.is_leaf() else ' '    
+            # print '-' * level * 2, pref, self.node.value, "[" + str(self.height) + ":" + str(self.balance) + "]", 'L' if self.is_leaf() else ' '    
+            print '-' * level * 2, pref, self.node.value     
             if self.node.left != None: 
                 self.node.left.display(level + 1, '<')
             if self.node.left != None:
                 self.node.right.display(level + 1, '>')
+
+    # Para emular un árbol de rangos. Cada punto del espacio es una hoja en el árbol.
+    def llenaHojas(self):
+        self.update_heights()  # Must update heights before balances 
+        self.update_balances()
+        print (self.node.value," Root ")
+
+    def insert(self, value):
+        tree = self.node
         
+        newnode = Node(value)
+        
+        if tree == None:
+            self.node = newnode 
+            self.node.left = AVLTree() 
+            self.node.right = AVLTree()
+            debug("Inserted value [" + str(value) + "]")
+        
+        elif value < tree.value: 
+            self.node.left.insert(value)
+            
+        elif value > tree.value: 
+            self.node.right.insert(value)
+        
+        else: 
+            debug("value [" + str(value) + "] already in tree.")
+            
+        self.rebalance() 
+
+    def insertaPunto(self):
+        if self.node == None or self.isPoint:
+            return
+        # El hijo izquierdo
+        sub_izq = self.node.left.node
+        # Si no tiene hijo izquierdo, ahí insertamos el punto.
+        if sub_izq == None:
+            self.node.left.node = Node(self.node.value)
+            self.node.left.node.left = AVLTree()
+            self.node.left.node.right = AVLTree()
+            self.node.left.isPoint = True
+            return
+        # Si si tiene hijo izquierdo.
+        else: 
+            self.node.left.insertaDerecho(self.node.value)
+
+        if self.node.left != None:
+            self.node.left.insertaPunto()
+        if self.node.left != None:
+            self.node.right.insertaPunto()
+
+    # Función auxiliar para insertaPunto.
+    def insertaDerecho (self,value):
+        if self.node == None:
+            self.node = Node(value)
+            self.node.left = AVLTree()
+            self.node.right = AVLTree()
+            self.isPoint = True
+        else: 
+            self.node.right.insertaDerecho(value)
+
+    # Dada una raíz, regresa todas sus hojas.
+    def getHojas(self):
+        # Si es una hoja. 
+        if not self.node.hasLeftChild() and not self.node.hasRightChild():
+            return [self.node.value]
+        lista = []
+        # Si tiene hijo izquierdo.
+        if self.node.hasLeftChild():
+            leftChild = self.node.left
+            lista = lista + leftChild.getHojas()
+        # Si tiene hijo derecho.
+        if self.node.hasRightChild():
+            rightChild = self.node.right
+            lista = lista + rightChild.getHojas()
+
+        return lista
 
 
+    # Dada una raíz, regresa V_split. (El nodo donde se divide la búsqueda).
+    def getVSplit (self,v1,v2):
+        if self.node == None:
+            return
+        # Esto solo pasa si v1 = v2.
+        elif self.node.value == v1 and self.node.value == v2:
+            print("El nodo split es: ", self.node.value)
+            # Si bota errores aquí, regresar a la línea comentada
+            # print(self.getHojas())
+            print(self.node.left.getHojas())
+        # Si es el nodo que buscamos
+        elif self.node.value >= v1 and self.node.value < v2:
+            print("El nodo split es: ", self.node.value)
+            print(self.getHojas())
+        elif (self.node.value > v1 and self.node.value >= v2):
+            self.node.left.getVSplit(v1,v2)
+        else:
+            self.node.right.getVSplit(v1,v2)
 
+        
 # Usage example
-if __name__ == "__main__": 
-    a = AVLTree()
-    print "----- Inserting -------"
-    #inlist = [5, 2, 12, -4, 3, 21, 19, 25]
-    inlist = [7, 5, 2, 6, 3, 4, 1, 8, 9, 0,-9,67,90,34,28,63,14,13,18]
-    for i in inlist: 
-        a.insert(i)
-         
-    a.display()
-    
+if __name__ == "__main__":
+    # Cosas del Duis 
+    # Los puntos  
+    lista_puntos = [(2,25),(2,66),(3,44),(4,11),(5,55),(6,33),(7,68),(8,26)]
+    # Árbol ordenado respecto al eje x.
+    x_tree = AVLTree()
+    # Árbol ordenado respecto al eje y.
+    y_tree = AVLTree()
+    # Agregamos los puntos al AVL con respecto a su coordenada x.
+    map(lambda punto: x_tree.insert(punto[0]), lista_puntos)
+    # Agregamos los puntos al AVL con respecto a su coordenada y.
+    map(lambda punto: y_tree.insert(punto[1]), lista_puntos)
+    x_tree.insertaPunto()
+    y_tree.insertaPunto()
+    print("En eje x: ")
+    x_tree.display()
     """
-    print "----- Deleting -------"
-    a.delete(3)
-    a.delete(4)
-    # a.delete(5) 
-    a.display()
+    print("En eje y: ")
+    y_tree.display()
+    # Primer prueba de V Split
     """
+    x_tree.getVSplit(2,8)
+    # Fin de Cosas del Duis
+    # Construir recursivamente su árbol asociado.
