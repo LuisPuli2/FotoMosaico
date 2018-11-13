@@ -14,7 +14,7 @@ class Node():
         self.left = None 
         self.right = None
         # Adaptación del Duis.
-        # Árbol asociado a ese nodo.
+        # Árbol asociado a ese nodo T(v).
         self.T_assoc = None
         # El punto asociado a ese nodo.
         self.point = point
@@ -31,12 +31,10 @@ class Node():
 
     # Regresa el valor del nodo.
     def getValue(self):
-        """
-        print("entra")
-        print(self.point)
-        print("Sale")
-        """
         return self.point[self.dimension]
+
+    def getPoint(self):
+        return self.point
 
     # Asgina un nuevo valor al nodo.
     def setValue(self,value):
@@ -45,17 +43,14 @@ class Node():
 
 # El Árbol AVL, tuneado para árboles de rangos, by el Duis.
 class AVLTree():
-    def __init__(self, *args):
+    def __init__(self,dimension = 0):
         self.node = None 
         self.height = -1  
         self.balance = 0
         # Adaptación del Duis 
         self.isPoint = False
-        self.dimension = 1
+        self.dimension = dimension
         
-        if len(args) == 1: 
-            for i in args[0]: 
-                self.insert(i)
                 
     def height(self):
         if self.node: 
@@ -239,17 +234,17 @@ class AVLTree():
         self.update_heights()  # Must update heights before balances 
         self.update_balances()
         if(self.node != None): 
-            # print '-' * level * 2, pref, self.node.getValue(), "[" + str(self.height) + ":" + str(self.balance) + "]", 'L' if self.is_leaf() else ' '    
-            print '-' * level * 2, pref, self.node.getValue()     
+            print '-' * level * 2, pref, self.node.getValue()    
             if self.node.left != None: 
                 self.node.left.display(level + 1, '<')
             if self.node.left != None:
                 self.node.right.display(level + 1, '>')
 
-    def insert(self, point):
+    # Inserta en el árbol
+    def insert(self, point, dimension = 0):
         tree = self.node
 
-        newNode = Node(point)
+        newNode = Node(point,dimension)
         
         if tree == None:
             self.node = newNode 
@@ -257,50 +252,50 @@ class AVLTree():
             self.node.right = AVLTree()
         
         elif newNode.getValue() < tree.getValue(): 
-            self.node.left.insert(point)
+            self.node.left.insert(point,dimension)
             
         elif newNode.getValue() > tree.getValue(): 
-            self.node.right.insert(point)
+            self.node.right.insert(point,dimension)
             
         self.rebalance() 
 
     # Para llenar las hojas del árbol, que serán los puntos.
-    def insertaPunto(self):
+    def insertaPuntos(self,dimension=0):
         if self.node == None or self.isPoint:
             return
         # El hijo izquierdo
         sub_izq = self.node.left.node
         # Si no tiene hijo izquierdo, ahí insertamos el punto.
         if sub_izq == None:
-            self.node.left.node = Node(self.node.point)
+            self.node.left.node = Node(self.node.point,dimension)
             self.node.left.node.left = AVLTree()
             self.node.left.node.right = AVLTree()
             self.node.left.isPoint = True
             return
         # Si si tiene hijo izquierdo.
         else: 
-            self.node.left.insertaDerecho(self.node.point)
+            self.node.left.insertaDerecho(self.node.point,dimension)
 
         if self.node.left != None:
-            self.node.left.insertaPunto()
+            self.node.left.insertaPuntos(dimension)
         if self.node.left != None:
-            self.node.right.insertaPunto()
+            self.node.right.insertaPuntos(dimension)
 
-    # Función auxiliar para insertaPunto.
-    def insertaDerecho (self,value):
+    # Función auxiliar para insertaPuntos.
+    def insertaDerecho (self,value,dimension):
         if self.node == None:
-            self.node = Node(value)
+            self.node = Node(value,dimension)
             self.node.left = AVLTree()
             self.node.right = AVLTree()
             self.isPoint = True
         else: 
-            self.node.right.insertaDerecho(value)
+            self.node.right.insertaDerecho(value,dimension)
 
-    # Dada una raíz, regresa todas sus hojas.
+    # Dada una raíz, regresa todas sus hojas (puntos).
     def getHojas(self):
         # Si es una hoja. 
         if not self.node.hasLeftChild() and not self.node.hasRightChild():
-            return [self.node.getValue()]
+            return [self.node.getPoint()]
         lista = []
         # Si tiene hijo izquierdo.
         if self.node.hasLeftChild():
@@ -321,8 +316,6 @@ class AVLTree():
         # Esto solo pasa si v1 = v2.
         elif self.node.getValue() == v1 and self.node.getValue() == v2:
             print("El nodo split es: ", self.node.getValue(),self.node.point)
-            # Si bota errores aquí, regresar a la línea comentada
-            # print(self.getHojas())
             print(self.node.left.getHojas())
         # Si es el nodo que buscamos
         elif self.node.getValue() >= v1 and self.node.getValue() < v2:
@@ -333,26 +326,47 @@ class AVLTree():
         else:
             self.node.right.getVSplit(v1,v2)
 
+    # Construye recursivamente los árboles asocidados a cada nodo de nuestro árbol principal.
+    def fillAssocTrees (self):
+        # Si es una hoja.
+        if self.isPoint:
+            return
+        # T(v)
+        puntos = self.getHojas()
+        print("Para: ", self.node.getPoint())
+        # El uno, es temporal, debería ser más genérico.
+        dimension = 1
+        # Creamos el árbol asociado a este nodo
+        self.node.T_assoc = AVLTree(dimension)
+        map(lambda punto: self.node.T_assoc.insert(punto,dimension), puntos)
+        # Llenamos las hojas.
+        self.node.T_assoc.insertaPuntos(dimension)
+        print("Su árbol")
+        self.node.T_assoc.display()
+        if self.node.hasLeftChild():
+            self.node.left.fillAssocTrees()
+        if self.node.hasRightChild():
+            self.node.right.fillAssocTrees()
+
+
         
 # Usage example
 if __name__ == "__main__":
     # Cosas del Duis 
     # Los puntos  
-    lista_puntos = [(2,25),(2,66),(3,44),(4,11),(5,55),(6,33),(7,68),(8,26)]
+    lista_puntos = [(2,2),(3,4),(5,3),(6,7),(8,5),(9,8),(11,10),(13,6),(12,1),(15,9)]
     # Árbol ordenado respecto al eje x.
     x_tree = AVLTree()
-    # Árbol ordenado respecto al eje y.
-    y_tree = AVLTree()
     # Agregamos los puntos al AVL con respecto a su coordenada x.
     map(lambda punto: x_tree.insert(punto), lista_puntos)
-    x_tree.insertaPunto()
+    x_tree.insertaPuntos()
     print("El árbol: ")
     x_tree.display()
-    """
-    print("En eje y: ")
-    y_tree.display()
     # Primer prueba de V Split
-    """
-    x_tree.getVSplit(2,8)
+    # x_tree.getVSplit(3,4)
+    # Primer prueba de Assoc
+    x_tree.fillAssocTrees()
     # Fin de Cosas del Duis
-    # Construir recursivamente su árbol asociado.
+    # TO DO
+    # En lugar de que el nodo guarde un punto, guardar una lista de puntos.
+    # Ver qué onda con los repetidos
