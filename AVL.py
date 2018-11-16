@@ -1,5 +1,7 @@
 # coding=utf-8
 #import random, math
+# import pdb
+import time
 
 outputdebug = False 
 
@@ -15,7 +17,7 @@ class Node():
         self.right = None
         # Adaptación del Duis.
         # Árbol asociado a ese nodo T(v).
-        self.T_assoc = None
+        self.assoc_tree = None
         # El punto asociado a ese nodo.
         self.point = point
         # La dimensión de nuestro nodo 0,1 o 2 (x,y o z)
@@ -35,6 +37,10 @@ class Node():
 
     def getPoint(self):
         return self.point
+
+    # Determina si es una hoja
+    def isLeaf(self):
+        return not self.hasLeftChild() and not self.hasRightChild()
 
     # Asgina un nuevo valor al nodo.
     def setValue(self,value):
@@ -234,7 +240,7 @@ class AVLTree():
         self.update_heights()  # Must update heights before balances 
         self.update_balances()
         if(self.node != None): 
-            print '-' * level * 2, pref, self.node.getValue()    
+            print '-' * level * 2, pref, self.node.getValue(), self.node.point    
             if self.node.left != None: 
                 self.node.left.display(level + 1, '<')
             if self.node.left != None:
@@ -265,20 +271,23 @@ class AVLTree():
             return
         # El hijo izquierdo
         sub_izq = self.node.left.node
-        # Si no tiene hijo izquierdo, ahí insertamos el punto.
-        if sub_izq == None:
+        # Si no tiene hijo izquierdo (Caso base), ahí insertamos el punto.
+        if not sub_izq:
             self.node.left.node = Node(self.node.point,dimension)
             self.node.left.node.left = AVLTree()
             self.node.left.node.right = AVLTree()
             self.node.left.isPoint = True
+            if self.node.right.node != None:
+                self.node.right.insertaPuntos(dimension)
             return
         # Si si tiene hijo izquierdo.
         else: 
             self.node.left.insertaDerecho(self.node.point,dimension)
 
-        if self.node.left != None:
+        # WUT?
+        if self.node.left.node != None:
             self.node.left.insertaPuntos(dimension)
-        if self.node.left != None:
+        if self.node.right.node != None:
             self.node.right.insertaPuntos(dimension)
 
     # Función auxiliar para insertaPuntos.
@@ -291,10 +300,10 @@ class AVLTree():
         else: 
             self.node.right.insertaDerecho(value,dimension)
 
-    # Dada una raíz, regresa todas sus hojas (puntos).
+    # Dada una raíz, regresa una lista de todas sus hojas (puntos).
     def getHojas(self):
         # Si es una hoja. 
-        if not self.node.hasLeftChild() and not self.node.hasRightChild():
+        if self.node.isLeaf():
             return [self.node.getPoint()]
         lista = []
         # Si tiene hijo izquierdo.
@@ -312,61 +321,191 @@ class AVLTree():
     # Dada una raíz, regresa V_split. (El nodo donde se divide la búsqueda).
     def getVSplit (self,v1,v2):
         if self.node == None:
-            return
+            return None
         # Esto solo pasa si v1 = v2.
         elif self.node.getValue() == v1 and self.node.getValue() == v2:
-            print("El nodo split es: ", self.node.getValue(),self.node.point)
-            print(self.node.left.getHojas())
-        # Si es el nodo que buscamos
-        elif self.node.getValue() >= v1 and self.node.getValue() < v2:
-            print("El nodo split es: ", self.node.getValue(),self.node.point)
-            print(self.getHojas())
+            return self
+        # Si es el nodo que buscamos.
+        elif self.node.getValue() >= v1 and self.node.getValue() <= v2:
+            return self
+        # Si hay que ir a la izquierda.
         elif (self.node.getValue() > v1 and self.node.getValue() >= v2):
-            self.node.left.getVSplit(v1,v2)
+            return self.node.left.getVSplit(v1,v2)
+        # Si hay que ir a la derecha.
         else:
-            self.node.right.getVSplit(v1,v2)
+            return self.node.right.getVSplit(v1,v2)
 
     # Construye recursivamente los árboles asocidados a cada nodo de nuestro árbol principal.
-    def fillAssocTrees (self):
+    def fillAssocTrees (self,dimension = 1):
         # Si es una hoja.
+        """
         if self.isPoint:
             return
+        """
         # T(v)
         puntos = self.getHojas()
-        print("Para: ", self.node.getPoint())
-        # El uno, es temporal, debería ser más genérico.
-        dimension = 1
         # Creamos el árbol asociado a este nodo
-        self.node.T_assoc = AVLTree(dimension)
-        map(lambda punto: self.node.T_assoc.insert(punto,dimension), puntos)
+        self.node.assoc_tree = AVLTree(dimension)
+        map(lambda punto: self.node.assoc_tree.insert(punto,dimension), puntos)
         # Llenamos las hojas.
-        self.node.T_assoc.insertaPuntos(dimension)
-        print("Su árbol")
-        self.node.T_assoc.display()
+        self.node.assoc_tree.insertaPuntos(dimension)
         if self.node.hasLeftChild():
-            self.node.left.fillAssocTrees()
+            self.node.left.fillAssocTrees(dimension)
         if self.node.hasRightChild():
-            self.node.right.fillAssocTrees()
+            self.node.right.fillAssocTrees(dimension)
+
+    # Método general para buscar los puntos más cercanos.
+    def getNearestPoints(self,x,y):
+        print("Parametros de busqueda: ", x,y)
+        x1,x2 = x
+        # El nodo dónde se divide la búsqueda.
+        split = self.getVSplit(x1,x2)
+        # Si no ecnontró ningún punto
+        if not split:
+            print("Ningun punto cumple eso. :(")
+            return
+        split_node = split.node
+        print("El Nodo split es:",split_node.point)
+        # Buscamos v split_node sobre x, primero.
+        print("Lado izquierdo: ")
+        # Obtenemos los subárboles derechos de su subárbol izquierdo.
+        print split_node.left.getLeftRightSubTrees(x1,y)
+        print("Lado derecho:")
+        print split_node.right.getRightLeftSubTrees(x2,y)
+
+    # Busca los subárboles derechos del subarbol izquierdo. 
+    def getLeftRightSubTrees(self,x,p = None):
+        # Debugeo
+        # if not p:
+        if False:
+            print("Buscando",x)
+            self.display()
+            print("---")
+        # Fin debugeo
+        # Si es vacío.
+        # pdb.set_trace()
+        if self.node == None:
+            return []
+        # Sí es una hoja.
+        if self.node.isLeaf():
+            if self.node.getValue() >= x:
+                if p == None:
+                    return self.getHojas()
+                # Si no es el último nivel de búsqueda.
+                else:
+                    if self.node.getPoint()[1] >= p[0] and self.node.getPoint()[1] <= p[1]:
+                        return self.getHojas()
+            return []
+        # Sí no es una hoja.
+        if self.node.getValue() >= x:
+            puntos = []
+            # Si tiene hijo derecho
+            if self.node.hasRightChild():
+                # Si ya es el último nivel de la búsqueda.
+                if p == None:
+                    # Sería regresar las hojas.
+                    # print(self.node.right.getHojas())
+                    puntos = puntos + self.node.right.getHojas()
+                else:
+                    assoc_node = self.node.right.node.assoc_tree.getVSplit(p[0],p[1])
+                    if assoc_node:
+                        assoc_node = assoc_node.node
+                        # Si es una hoja
+                        if assoc_node.isLeaf():
+                            return [assoc_node.getPoint()]
+                        # Si la raiz del árbol asociado tiene hijo izquiero.
+                        if assoc_node.hasLeftChild():
+                            puntos = puntos + assoc_node.left.getLeftRightSubTrees(p[0])
+                        # Si la raiz del árbol asociado tiene hijo derecho.
+                        if assoc_node.hasRightChild():
+                            puntos = puntos + assoc_node.right.getRightLeftSubTrees(p[1])
+            # Si tiene hijo izquierdo
+            if self.node.hasLeftChild(): # Estoy casi seguro que casi siempre se cumple
+                puntos = puntos + self.node.left.getLeftRightSubTrees(x,p)
+            return puntos
+        # Si no se cumple, nos vamos a su hijo derecho si es que tiene.
+        elif (self.node.hasRightChild()):
+            return self.node.right.getLeftRightSubTrees(x,p)
+
+    # Busca los subárboles izquierdos del subarbol derecho. 
+    def getRightLeftSubTrees(self,x,p=None):
+        # if p == None:
+        if False:
+            print("Buscando",x)
+            self.display()
+            print("---")
+        # Si es vacío.
+        if self.node == None:
+            return []
+        # Sí es una hoja.
+        if self.node.isLeaf():
+            if self.node.getValue() <= x:
+                if p == None:
+                    return self.getHojas()
+                # Si no es el último nivel de búsqueda.
+                else:
+                    if self.node.getPoint()[1] >= p[0] and self.node.getPoint()[1] <= p[1]:
+                        return self.getHojas()
+            return []
+        # Sí no es una hoja.
+        if self.node.getValue() <= x:
+            puntos = []
+            # Si tiene hijo izquierdo
+            if self.node.hasLeftChild():
+                if p == None:
+                    # Sería regresar las hojas.
+                    puntos = puntos + self.node.left.getHojas()
+                else:
+                    assoc_node = self.node.left.node.assoc_tree.getVSplit(p[0],p[1])
+                    if assoc_node:
+                        assoc_node = assoc_node.node
+                        # Si solo es una hoja
+                        if assoc_node.isLeaf():
+                            return [assoc_node.getPoint()]
+                        if assoc_node.hasLeftChild():
+                            puntos = puntos + assoc_node.left.getLeftRightSubTrees(p[0])
+                        # Si la raiz del árbol asociado tiene hijo derecho.
+                        if assoc_node.hasRightChild():
+                            puntos = puntos + assoc_node.right.getRightLeftSubTrees(p[1])
+            # Si tiene hijo derecho
+            if self.node.hasRightChild(): # Estoy casi seguro que casi siempre se cumple
+                puntos = puntos + self.node.right.getRightLeftSubTrees(x,p)
+            return puntos
+        # Si no se cumple, nos vamos a su hijo izquierdo si es que tiene.
+        elif (self.node.hasLeftChild()):
+            return self.node.left.getRightLeftSubTrees(x,p)
+
+    # Búsqueda lineal de puntos.
+    def busquedaLineal():
+        pass
 
 
         
 # Usage example
-if __name__ == "__main__":
+if __name__ == "__main__":   
     # Cosas del Duis 
     # Los puntos  
-    lista_puntos = [(2,2),(3,4),(5,3),(6,7),(8,5),(9,8),(11,10),(13,6),(12,1),(15,9)]
+    lista_puntos = [(1,3),(2,12),(3,4),(4,1),(5,8),(6,14),(7,6),(8,5),(9,11),(10,7),(11,9),(12,13)]
+    # lista_puntos = [(1,3),(2,1),(3,4),(4,2),(5,5)]
     # Árbol ordenado respecto al eje x.
     x_tree = AVLTree()
+    # Empezamos a tomar el tiempo
+    print("empieza a tomar el tiempo")
+    start_time = time.time()
     # Agregamos los puntos al AVL con respecto a su coordenada x.
     map(lambda punto: x_tree.insert(punto), lista_puntos)
     x_tree.insertaPuntos()
-    print("El árbol: ")
-    x_tree.display()
+    # print("El árbol princial generado: ")
+    # x_tree.display()
     # Primer prueba de V Split
-    # x_tree.getVSplit(3,4)
     # Primer prueba de Assoc
-    x_tree.fillAssocTrees()
+    x_tree.fillAssocTrees(1)
+    # Primer búsqueda
+    x_tree.getNearestPoints((11,13),(12,14))
+    print("Tiempo transcurrido: --- %s seconds ---" % (time.time() - start_time))
     # Fin de Cosas del Duis
     # TO DO
     # En lugar de que el nodo guarde un punto, guardar una lista de puntos.
     # Ver qué onda con los repetidos
+    # 
+    # TE AMO LIZ!!!!!!
