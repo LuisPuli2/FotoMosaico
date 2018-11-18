@@ -284,7 +284,7 @@ class AVLTree():
         else: 
             self.node.left.insertaDerecho(self.node.point,dimension)
 
-        # WUT?
+        # Sigue recursivamente.
         if self.node.left.node != None:
             self.node.left.insertaPuntos(dimension)
         if self.node.right.node != None:
@@ -343,18 +343,26 @@ class AVLTree():
             return self
 
     # Construye recursivamente los árboles asocidados a cada nodo de nuestro árbol principal.
-    def fillAssocTrees (self,dimension = 1):
+    def fillAssocTrees (self,dimensiones = []):
+        # Caso base de la recursion
+        if not dimensiones:
+            return
+        # La dimensión actual.
+        dimension = dimensiones[0]
         # T(v)
         puntos = self.getHojas()
         # Creamos el árbol asociado a este nodo
         self.node.assoc_tree = AVLTree(dimension)
+        # Aquí insertamos los puntos con su dimensión correspondiente.
         map(lambda punto: self.node.assoc_tree.insert(punto,dimension), puntos)
-        # Llenamos las hojas.
+        # Llenamos las hojas de árbol que acabamos de construir.
         self.node.assoc_tree.insertaPuntos(dimension)
         if self.node.hasLeftChild():
-            self.node.left.fillAssocTrees(dimension)
+            self.node.left.fillAssocTrees(dimensiones)
         if self.node.hasRightChild():
-            self.node.right.fillAssocTrees(dimension)
+            self.node.right.fillAssocTrees(dimensiones)
+        # Llenamos recursivamente los árboles de la sig dimensión.
+        self.node.assoc_tree.fillAssocTrees(dimensiones[1:])
 
     # Dado un nodo y parámteros de busqueda x,y,... regresa los puntos acotados dentro de esos rangos.
     # Parametros es la lista que contiene [x:x'],[y:y'] y [z:z'] en nuestro caso.
@@ -374,7 +382,7 @@ class AVLTree():
         # Almacenará los puntos encontrados.
         points = []
         # Si es una hoja.
-        if v1 <= split_node.getValue() and split_node.getValue() >= v2:
+        if v1 <= split_node.getValue() and split_node.getValue() <= v2 and split_node.isLeaf():
             return [split_node.getPoint()]
         # Si existe hijo izquierdo.
         if split_node.hasLeftChild():
@@ -395,7 +403,7 @@ class AVLTree():
                     return self.getHojas()
                 # Si no es el último nivel de búsqueda.
                 else:
-                    return self.getPoints(p)
+                    return self.node.assoc_tree.getPoints(p)
             return []
         # Sí no es una hoja.
         if self.node.getValue() >= x:
@@ -427,7 +435,7 @@ class AVLTree():
                     return self.getHojas()
                 # Si no es el último nivel de búsqueda.
                 else:
-                    return self.getPoints(p)
+                    return self.node.assoc_tree.getPoints(p)
             return []
         # Sí no es una hoja.
         if self.node.getValue() <= x:
@@ -451,27 +459,39 @@ class AVLTree():
     def busquedaLineal():
         pass
 
+    # Dada una lista de puntos, construye su árbol de rangos.
+    def fillTree(self,point_list=[]):
+        # Si no nos dan puntos
+        if not point_list :
+            return
+        # Para comparaciones solamente.
+        start_time = time.time()
+        # Insertamos en el árbol los puntos.
+        map(lambda punto: self.insert(punto), point_list)
+        # Llenamos las hojas que representarán nuestros puntos. (Como en el de rangos)
+        self.insertaPuntos()
+        # Calculamos la dimensión de nuestro árbol con base en el tamaño de un punto de nuestra lista.
+        dimensiones = []
+        # Calculamos las dimensiones.
+        for i in range(1,len(point_list[0])):
+            dimensiones.append(i)
+        # Llenamos los árboles asocidados para cada dimensión.
+        self.fillAssocTrees(dimensiones)
+        # Comparaciones solamente.
+        print("Tardo: --- %s segundo para construir el árbol" % (time.time() - start_time))
 
         
 # Usage example
 if __name__ == "__main__":   
-    # Los puntos  
-    lista_puntos = [(1,4),(2,15),(3,10),(4,6),(5,12),(6,8),(7,14),(8,2),(9,5),(10,16)]
-    # lista_puntos = [(1,3),(2,1),(3,4),(4,2),(5,5)]
-    # Árbol ordenado respecto al eje x.
-    x_tree = AVLTree()
-    # Empezamos a tomar el tiempo
-    print("Empieza a tomar el tiempo")
-    start_time = time.time()
-    # Agregamos los puntos al AVL con respecto a su coordenada x.
-    map(lambda punto: x_tree.insert(punto), lista_puntos)
-    x_tree.insertaPuntos()
-    # Llenamos los árboles asociados.
-    x_tree.fillAssocTrees(1)
-    print (x_tree.getPoints([(8,9),(1,5)]))
-    print("Tardo: --- %s segundo para encontrar el elemento" % (time.time() - start_time))
-    # TO DO
-    # En lugar de que el nodo guarde un punto, guardar una lista de puntos.
-    # Ver qué onda con los repetidos
-    # 
-    # TE AMO LIZ!!!!!!
+    # Los puntos en el espacio.
+    lista_puntos = [(1,4,0),(2,15,0),(3,10,0),(4,6,1),(5,12,0),(6,8,1),(7,14,0),(8,2,0),(9,5,0),(10,16,0)]
+    # El árbol de rangos.
+    tree = AVLTree()
+    # Lo llenamos
+    tree.fillTree(lista_puntos)
+    # Los parámetros de búsqueda.
+    x = (6,6)
+    y = (8,8)
+    z = (-1,1)
+    print("Parametros de busqueda: ", x,y,z)
+    print (tree.getPoints([x,y,z]))
