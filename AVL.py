@@ -12,14 +12,14 @@ def debug(msg):
 
 # El nodo.
 class Node():
-    def __init__(self,point,dimension=0):
+    def __init__(self,points,dimension=0):
         self.left = None 
         self.right = None
         # Adaptación del Duis.
         # Árbol asociado a ese nodo T(v).
         self.assoc_tree = None
-        # El punto asociado a ese nodo.
-        self.point = point
+        # En lugar de almacenar un punto, almacenará una lista de puntos.
+        self.points = points
         # La dimensión de nuestro nodo 0,1 o 2 (x,y o z)
         self.dimension = dimension
 
@@ -33,10 +33,11 @@ class Node():
 
     # Regresa el valor del nodo.
     def getValue(self):
-        return self.point[self.dimension]
+        return self.points[0][self.dimension]
 
-    def getPoint(self):
-        return self.point
+    # Regresa la lista de puntos que pertenecen a ese nodo.
+    def getPoints(self):
+        return self.points
 
     # Determina si es una hoja
     def isLeaf(self):
@@ -240,28 +241,33 @@ class AVLTree():
         self.update_heights()  # Must update heights before balances 
         self.update_balances()
         if(self.node != None): 
-            print '-' * level * 2, pref, self.node.getValue(), self.node.point    
+            print '-' * level * 2, pref, self.node.getValue(),self.node.points   
             if self.node.left != None: 
                 self.node.left.display(level + 1, '<')
             if self.node.left != None:
                 self.node.right.display(level + 1, '>')
 
     # Inserta en el árbol
-    def insert(self, point, dimension = 0):
+    def insert(self,point,dimension = 0):
         tree = self.node
 
-        newNode = Node(point,dimension)
-        
+        newNode = Node([point],dimension)
+         
         if tree == None:
             self.node = newNode 
             self.node.left = AVLTree() 
             self.node.right = AVLTree()
-        
+        # Pruebas x2
+        # Si ya está ese punto, lo guardamos en la lista de puntos.
+        elif newNode.getValue() == tree.getValue():
+            tree.points.append(point)
+        # Fin Pruebas x2
         elif newNode.getValue() < tree.getValue(): 
             self.node.left.insert(point,dimension)
             
         elif newNode.getValue() > tree.getValue(): 
             self.node.right.insert(point,dimension)
+
             
         self.rebalance() 
 
@@ -273,7 +279,7 @@ class AVLTree():
         sub_izq = self.node.left.node
         # Si no tiene hijo izquierdo (Caso base), ahí insertamos el punto.
         if not sub_izq:
-            self.node.left.node = Node(self.node.point,dimension)
+            self.node.left.node = Node(self.node.points,dimension)
             self.node.left.node.left = AVLTree()
             self.node.left.node.right = AVLTree()
             self.node.left.isPoint = True
@@ -282,7 +288,7 @@ class AVLTree():
             return
         # Si si tiene hijo izquierdo.
         else: 
-            self.node.left.insertaDerecho(self.node.point,dimension)
+            self.node.left.insertaDerecho(self.node.points,dimension)
 
         # Sigue recursivamente.
         if self.node.left.node != None:
@@ -291,20 +297,21 @@ class AVLTree():
             self.node.right.insertaPuntos(dimension)
 
     # Función auxiliar para insertaPuntos.
-    def insertaDerecho (self,value,dimension):
+    def insertaDerecho (self,points,dimension):
         if self.node == None:
-            self.node = Node(value,dimension)
+            self.node = Node(points,dimension)
+            # self.node.points = points
             self.node.left = AVLTree()
             self.node.right = AVLTree()
             self.isPoint = True
         else: 
-            self.node.right.insertaDerecho(value,dimension)
+            self.node.right.insertaDerecho(points,dimension)
 
     # Dada una raíz, regresa una lista de todas sus hojas (puntos).
     def getHojas(self):
         # Si es una hoja. 
         if self.node.isLeaf():
-            return [self.node.getPoint()]
+            return self.node.getPoints()
         lista = []
         # Si tiene hijo izquierdo.
         if self.node.hasLeftChild():
@@ -366,7 +373,7 @@ class AVLTree():
 
     # Dado un nodo y parámteros de busqueda x,y,... regresa los puntos acotados dentro de esos rangos.
     # Parametros es la lista que contiene [x:x'],[y:y'] y [z:z'] en nuestro caso.
-    def getPoints(self,params=[]):
+    def getNearestPoints(self,params=[]):
         if not params:
             print("No hay parametros")
             return []
@@ -383,7 +390,7 @@ class AVLTree():
         points = []
         # Si es una hoja.
         if v1 <= split_node.getValue() and split_node.getValue() <= v2 and split_node.isLeaf():
-            return [split_node.getPoint()]
+            return split_node.getPoints()
         # Si existe hijo izquierdo.
         if split_node.hasLeftChild():
             points += split_node.left.getLeftRightSubTrees(v1,params[1:])
@@ -403,7 +410,7 @@ class AVLTree():
                     return self.getHojas()
                 # Si no es el último nivel de búsqueda.
                 else:
-                    return self.node.assoc_tree.getPoints(p)
+                    return self.node.assoc_tree.getNearestPoints(p)
             return []
         # Sí no es una hoja.
         if self.node.getValue() >= x:
@@ -414,7 +421,7 @@ class AVLTree():
                 if not p:
                     puntos += self.node.right.getHojas()
                 else:
-                    puntos += self.node.right.node.assoc_tree.getPoints(p)
+                    puntos += self.node.right.node.assoc_tree.getNearestPoints(p)
             # Si tiene hijo izquierdo
             if self.node.hasLeftChild(): # Estoy casi seguro que casi siempre se cumple
                 puntos += self.node.left.getLeftRightSubTrees(x,p)
@@ -435,7 +442,7 @@ class AVLTree():
                     return self.getHojas()
                 # Si no es el último nivel de búsqueda.
                 else:
-                    return self.node.assoc_tree.getPoints(p)
+                    return self.node.assoc_tree.getNearestPoints(p)
             return []
         # Sí no es una hoja.
         if self.node.getValue() <= x:
@@ -446,7 +453,7 @@ class AVLTree():
                     # Sería regresar las hojas.
                     puntos += self.node.left.getHojas()
                 else:
-                    puntos += self.node.left.node.assoc_tree.getPoints(p)
+                    puntos += self.node.left.node.assoc_tree.getNearestPoints(p)
             # Si tiene hijo derecho
             if self.node.hasRightChild(): # Estoy casi seguro que casi siempre se cumple
                 puntos += self.node.right.getRightLeftSubTrees(x,p)
@@ -456,8 +463,22 @@ class AVLTree():
             return self.node.left.getRightLeftSubTrees(x,p)
 
     # Búsqueda lineal de puntos.
-    def busquedaLineal():
-        pass
+    def busquedaLineal(self,point_list=[],search_range = []):
+        points = []
+        cumple = True
+        # Recorremos la lista linealmente.
+        for i in range(len(point_list)):
+            for j in range(len(point_list[i])):
+                # Si no entra en el rango
+                if not (search_range[j][0] <= point_list[i][j] and search_range[j][1] >= point_list[i][j]):
+                    cumple = False
+                    break
+            # Si sí cumplió los rangos
+            if cumple:
+                points.append(point_list[i])
+            # Reiniciamos el valor.
+            cumple = True
+        return points
 
     # Dada una lista de puntos, construye su árbol de rangos.
     def fillTree(self,point_list=[]):
@@ -478,20 +499,71 @@ class AVLTree():
         # Llenamos los árboles asocidados para cada dimensión.
         self.fillAssocTrees(dimensiones)
         # Comparaciones solamente.
-        print("Tardo: --- %s segundo para construir el árbol" % (time.time() - start_time))
+        print("Tardo: --- %s segundos para construir el árbol con %s elementos" % (time.time() - start_time, len(point_list)))
 
-        
+    # Lee la "base de datos" de las imagenes, y genera su árbol de rangos.
+    def fillImageDB (self):
+        # El archivo donde está los datos.
+        BD = "BD.txt"
+        images = []
+
+        file = open(BD,"r")
+        for line in file.readlines():
+            line = line.replace("\n", "")
+            # Lo separamos por comas
+            arr = line.split(",")
+            nombre = arr[0]
+            R = int(arr[1]) 
+            G = int(arr[2]) 
+            B = int(arr[3]) 
+            RGB = (R,G,B)
+            # Lo metemos a la lista
+            images.append(RGB)
+        file.close()
+        # Creamos el árbol.
+        self.fillTree(images)
+
 # Usage example
-if __name__ == "__main__":   
-    # Los puntos en el espacio.
-    lista_puntos = [(1,4,0),(2,15,0),(3,10,0),(4,6,1),(5,12,0),(6,8,1),(7,14,0),(8,2,0),(9,5,0),(10,16,0)]
+if __name__ == "__main__":
     # El árbol de rangos.
     tree = AVLTree()
-    # Lo llenamos
-    tree.fillTree(lista_puntos)
-    # Los parámetros de búsqueda.
-    x = (6,6)
-    y = (8,8)
-    z = (-1,1)
-    print("Parametros de busqueda: ", x,y,z)
-    print (tree.getPoints([x,y,z]))
+    # Llenamos el árbol
+    # tree.fillImageDB()
+    BD = "BD.txt"
+    images = []
+
+    file = open(BD,"r")
+    for line in file.readlines():
+        line = line.replace("\n", "")
+        # Lo separamos por comas
+        arr = line.split(",")
+        nombre = arr[0]
+        R = int(arr[1]) 
+        G = int(arr[2]) 
+        B = int(arr[3]) 
+        RGB = (R,G,B)
+        # Lo metemos a la lista
+        images.append(RGB)
+    file.close()
+    # Creamos el árbol.
+    tree.fillTree(images)
+    # Lo imprimimos
+    # tree.display() 
+    # Los parámetros de búsqueda de prueba.
+    x = [50,130]
+    y = [100,200]
+    z = [80,190]
+    search_range = [x,y,z]
+    print("Parametros de busqueda: ")
+    print(search_range)
+    print("Resultados:")
+    # Para tomar el tiempo
+    start_time = time.time()
+    # Resultados de la búsqueda
+    results = tree.getNearestPoints(search_range)
+    print(results)
+    print("Tardo: --- %s segundos para encontrar los %s puntos en el árbol" % (time.time() - start_time, len(results)))
+    # Para tomar el tiempo
+    start_time = time.time()
+    print(tree.busquedaLineal(images,search_range))
+    print("Tardo: --- %s segundos para encontrar los %s puntos linealmente" % (time.time() - start_time, len(results)))

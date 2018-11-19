@@ -3,7 +3,7 @@ from PIL import Image
 import os
 
 # Variables globales.
-directorio = "birds"
+directorio = "images"
 BD = "BD.txt"
 images = {}
 
@@ -93,7 +93,7 @@ def filtroMosaico(imagen,mosaicoX,mosaicoY):
     rgb = imagen.convert('RGB')
     pixels = imagen.load()
     # Para ajustar el tamaño de la imagen.
-    tam = 6
+    tam = 5
     new_im = Image.new('RGB', (ancho*tam, alto*tam))
     for i in range(0,ancho,mosaicoX):
         recorreX = i + mosaicoX
@@ -133,10 +133,10 @@ def filtroMosaico(imagen,mosaicoX,mosaicoY):
 
 if __name__ == '__main__':
 	getPromedios()
-	llenaHash()
-	img = Image.open ("prro.jpeg")
+	# llenaHash()
+	# img = Image.open ("prro.jpeg")
 	# creaMosaico(img)
-	filtroMosaico(img,5,5)
+	# filtroMosaico(img,10,10)
 	# new_im.save('test.jpg')
 	# Termina mi desvergue
 	# print(images)
