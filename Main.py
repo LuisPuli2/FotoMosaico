@@ -1,3 +1,4 @@
+# coding=utf-8
 import tkFileDialog
 import types
 from Tkinter import *
@@ -5,10 +6,13 @@ import tkMessageBox
 from PIL import ImageTk, Image
 import os
 from Imagen import *
-from Agua import cifra
-from Agua import decifra
-from Agua import filtroMosaico
-from Mosaico import getPromedioRGB
+# from Agua import cifra
+# from Agua import decifra
+# from Agua import filtroMosaico
+# from Mosaico import getPromedioRGB
+from Mosaico import filtroMosaico
+# Árbol de rangos.
+from AVL import AVLTree
 
 
 # La interfaz principal.
@@ -36,10 +40,7 @@ class Interfaz(Frame):
         self.barra_Menu.add_cascade(label="Imagen", menu=self.abrir_Menu_Archivo)
 
         self.comboboxFiltro = Menu(self.barra_Menu, tearoff=0)
-        self.comboboxFiltro.add_command(label="Cifrar imagen", command=  self.procesa)
-        self.comboboxFiltro.add_command(label="Decifrar imagen", command= lambda: self.decifra())
-        self.comboboxFiltro.add_command(label="Mosaico con Cubo Rubik", command= lambda: self.aplicaRubik())
-        self.comboboxFiltro.add_command(label="Foto Mosaico", command= lambda: self.aplicaMosaico())
+        self.comboboxFiltro.add_command(label="Foto Mosaico", command= self.procesa)
 
         self.barra_Menu.add_cascade(label="Filtros", menu=self.comboboxFiltro)
         self.barra_Menu.add_command(label="Salir", command = self.salir)
@@ -49,16 +50,15 @@ class Interfaz(Frame):
 
     def creaCanvas(self):
 
-        self.nuevaVentana = Canvas(self, bg="white",width=500,height=400)
+        self.nuevaVentana = Canvas(self, bg="white",width=700,height=600)
         self.nuevaVentana.pack(side=LEFT, fill=BOTH, expand=True)
         
-        self.FiltroImagen = Canvas(self,bg ="white",width=500,height=400 )
+        self.FiltroImagen = Canvas(self,bg ="white",width=700,height=600 )
         self.FiltroImagen.pack(side=RIGHT, fill=BOTH, expand=True)
 
 
     def salir(self):
         os._exit(0)
-        
 
     def preguntaGuardar(self):
         if self.FiltroImagen.find_all() != ():
@@ -100,63 +100,36 @@ class Interfaz(Frame):
         if self.FiltroImagen.find_all() != ():
             self.tope = Toplevel()
 
-            self.escrito = Label (self.tope, text= "Introduce el texto que quieres cifrar. Recuerda que tienes que guardar la imagen",width=80)
+            self.escrito = Label (self.tope, text= "De qué tamaño quieres el mosaico?",width=60)
             self.escrito.pack()
 
-            self.entrytext = StringVar()
+            self.entrytext = IntVar()
             Entry(self.tope, textvariable=self.entrytext, width=60).pack()
 
             self.buttontext = StringVar()
             self.buttontext.set("Aplicar ")
-            self.button = Button(self.tope, textvariable=self.buttontext, command= lambda: self.cifra(self.entrytext)).pack()
+            self.button = Button(self.tope, textvariable=self.buttontext, command= lambda: self.aplicaFotoMosaico(self.entrytext)).pack()
         else:
             tkMessageBox.showwarning("Error","Escoge una imagen antes de aplicar un filtro")
 
-    # Para cubo Rubik
-    def aplicaRubik (self):
+    # Para foto mos 
+    def aplicaFotoMosaico (self,valor):
         if self.FiltroImagen.find_all() != ():
-            self.nuevaImagen = filtroMosaico(self.img,1,1)
-            imagenCambia = ImageTk.PhotoImage(self.nuevaImagen)
+            global tree
+            self.tope.destroy()
+            tam_mosaico = valor.get()
+            self.nuevaImagen = filtroMosaico(self.img,tam_mosaico,tam_mosaico,tree)
+            print("Termina.")
+            temp = self.nuevaImagen
+            width,height = temp.size
+            temp = temp.resize((width/2,height/2))
+            imagenCambia = ImageTk.PhotoImage(temp)
             self.FiltroImagen.imagenes1 = imagenCambia
             self.FiltroImagen.create_image(imagenCambia.width()/2, imagenCambia.height()/2, anchor=CENTER, image=imagenCambia, tags="bg_img")   
         else:
-            tkMessageBox.showwarning("Error","Elige una imagen antes de aplicar un filtro")
-
-    # Para foto mosaico
-    def aplicaMosaico(self):
-        if self.FiltroImagen.find_all() != ():
-            self.nuevaImagen = getPromedioRGB(self.img)
-            imagenCambia = ImageTk.PhotoImage(self.nuevaImagen)
-            self.FiltroImagen.imagenes1 = imagenCambia
-            self.FiltroImagen.create_image(imagenCambia.width()/2, imagenCambia.height()/2, anchor=CENTER, image=imagenCambia, tags="bg_img")   
-        else:
-            tkMessageBox.showwarning("Error","Elige una imagen antes de aplicar un filtro")
+            tkMessageBox.showwarning("Error","Elige una imagen antes de aplicar un filtro :(")
             
-    # Cifrar imagen.
-    def cifra(self,valor):
-        self.entrytext = valor.get()
-
-        self.nuevaImagen = cifra(self.img,self.entrytext)
-        imagenCambia = ImageTk.PhotoImage(self.nuevaImagen)
-        self.FiltroImagen.imagenes1 = imagenCambia
-        self.FiltroImagen.create_image(imagenCambia.width()/2, imagenCambia.height()/2, anchor=CENTER, image=imagenCambia, tags="bg_img")
-        self.tope.destroy()
-
-    # Decifrar imagen.
-    def decifra(self):
-
-        if self.FiltroImagen.find_all() != ():
-            self.nuevaImagen,texto = decifra(self.img)
-            imagenCambia = ImageTk.PhotoImage(self.nuevaImagen)
-            self.FiltroImagen.imagenes1 = imagenCambia
-            self.FiltroImagen.create_image(imagenCambia.width()/2, imagenCambia.height()/2, anchor=CENTER, image=imagenCambia, tags="bg_img")
-            tkMessageBox.showinfo("Texto encontrado:",texto)        
-        else:
-            tkMessageBox.showwarning("Error","Elige una imagen antes de aplicar un filtro")
-
-
     def sacaValor(self,valor):
-        
         self.entrytext = valor.get()
         self.nuevaImagen = filtroBrillo(self.img,self.cambia,self.entrytext)
         imageAplica = ImageTk.PhotoImage(self.nuevaImagen)
@@ -164,6 +137,12 @@ class Interfaz(Frame):
         self.FiltroImagen.create_image(imageAplica.width()/2, imageAplica.height()/2, anchor=CENTER, image=imageAplica, tags="bg_img")
         self.tope.destroy()
 
+print("Llenando árbol de rangos...")
+global tree
+tree = AVLTree()
+# Lo llenamos con la información preprocesada.
+tree.fillImageDB("BD.txt")
+print("Ya llenó el árbol")
 root = Tk()
 root.title("Proceso Digital de Imagenes ")
 root.wm_state("normal")

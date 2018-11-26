@@ -2,6 +2,7 @@
 #import random, math
 # import pdb
 import time
+from PIL import Image
 
 outputdebug = False 
 
@@ -34,6 +35,15 @@ class Node():
     # Regresa el valor del nodo.
     def getValue(self):
         return self.points[0][self.dimension]
+
+    # Pruebirri
+    # Regresa la ruta de las imágenes contenidas en ese nodo.
+    def getNames(self):
+        names = []
+        for point in self.points:
+            # Por convención, el nombre estára hasta el final de la tupla. (x,y,z,nombre)
+            names.append(point[len(point)-1])
+        return names
 
     # Regresa la lista de puntos que pertenecen a ese nodo.
     def getPoints(self):
@@ -462,24 +472,6 @@ class AVLTree():
         elif (self.node.hasLeftChild()):
             return self.node.left.getRightLeftSubTrees(x,p)
 
-    # Búsqueda lineal de puntos.
-    def busquedaLineal(self,point_list=[],search_range = []):
-        points = []
-        cumple = True
-        # Recorremos la lista linealmente.
-        for i in range(len(point_list)):
-            for j in range(len(point_list[i])):
-                # Si no entra en el rango
-                if not (search_range[j][0] <= point_list[i][j] and search_range[j][1] >= point_list[i][j]):
-                    cumple = False
-                    break
-            # Si sí cumplió los rangos
-            if cumple:
-                points.append(point_list[i])
-            # Reiniciamos el valor.
-            cumple = True
-        return points
-
     # Dada una lista de puntos, construye su árbol de rangos.
     def fillTree(self,point_list=[]):
         # Si no nos dan puntos
@@ -493,8 +485,8 @@ class AVLTree():
         self.insertaPuntos()
         # Calculamos la dimensión de nuestro árbol con base en el tamaño de un punto de nuestra lista.
         dimensiones = []
-        # Calculamos las dimensiones.
-        for i in range(1,len(point_list[0])):
+        # Calculamos las dimensiones. Le restamos uno por el nombre de las imágenes.
+        for i in range(1,len(point_list[0])- 1):
             dimensiones.append(i)
         # Llenamos los árboles asocidados para cada dimensión.
         self.fillAssocTrees(dimensiones)
@@ -502,9 +494,7 @@ class AVLTree():
         print("Tardo: --- %s segundos para construir el árbol con %s elementos" % (time.time() - start_time, len(point_list)))
 
     # Lee la "base de datos" de las imagenes, y genera su árbol de rangos.
-    def fillImageDB (self):
-        # El archivo donde está los datos.
-        BD = "BD.txt"
+    def fillImageDB (self,BD):
         images = []
 
         file = open(BD,"r")
@@ -516,19 +506,35 @@ class AVLTree():
             R = int(arr[1]) 
             G = int(arr[2]) 
             B = int(arr[3]) 
-            RGB = (R,G,B)
+            RGB = (R,G,B,nombre)
             # Lo metemos a la lista
             images.append(RGB)
         file.close()
         # Creamos el árbol.
         self.fillTree(images)
 
+    # Búsqueda lineal de puntos.
+    def busquedaLineal(self,point_list=[],search_range = []):
+        points = []
+        cumple = True
+        # Recorremos la lista linealmente.
+        for i in range(len(point_list)):
+            for j in range(0,len(point_list[i])-1):
+                # Si no entra en el rango
+                if not (search_range[j][0] <= point_list[i][j] and search_range[j][1] >= point_list[i][j]):
+                    cumple = False
+                    break
+            # Si sí cumplió los rangos
+            if cumple:
+                points.append(point_list[i])
+            # Reiniciamos el valor.
+            cumple = True
+        return points
+
 # Usage example
 if __name__ == "__main__":
     # El árbol de rangos.
     tree = AVLTree()
-    # Llenamos el árbol
-    # tree.fillImageDB()
     BD = "BD.txt"
     images = []
 
@@ -541,29 +547,25 @@ if __name__ == "__main__":
         R = int(arr[1]) 
         G = int(arr[2]) 
         B = int(arr[3]) 
-        RGB = (R,G,B)
+        RGB = (R,G,B,nombre)
         # Lo metemos a la lista
         images.append(RGB)
     file.close()
-    # Creamos el árbol.
-    tree.fillTree(images)
-    # Lo imprimimos
-    # tree.display() 
+    # Llenamos el árbol.
+    tree.fillTree(images) 
     # Los parámetros de búsqueda de prueba.
-    x = [50,130]
-    y = [100,200]
-    z = [80,190]
-    search_range = [x,y,z]
-    print("Parametros de busqueda: ")
-    print(search_range)
-    print("Resultados:")
-    # Para tomar el tiempo
-    start_time = time.time()
-    # Resultados de la búsqueda
-    results = tree.getNearestPoints(search_range)
-    print(results)
-    print("Tardo: --- %s segundos para encontrar los %s puntos en el árbol" % (time.time() - start_time, len(results)))
-    # Para tomar el tiempo
-    start_time = time.time()
-    print(tree.busquedaLineal(images,search_range))
-    print("Tardo: --- %s segundos para encontrar los %s puntos linealmente" % (time.time() - start_time, len(results)))
+    pruebas = [[[152,152],[160,160],[170,170]],[[108,108],[100,100],[100,100]],[[78,78],[71,71],[63,63]],[[85,85],[85,85],[85,85]],[[92,92],[89,89],[87,87]],[[97,99],[91,93],[88,90]]]
+    for prueba in pruebas:
+        search_range = prueba
+        print("Parametros de busqueda: ")
+        print(search_range)
+        print("Resultados:")
+        # Para tomar el tiempo
+        start_time = time.time()
+        # Resultados de la búsqueda
+        results = tree.getNearestPoints(search_range)
+        print("Tardo: --- %s segundos para encontrar los %s puntos en el árbol" % (time.time() - start_time, len(results)))
+        # Para tomar el tiempo
+        start_time = time.time()
+        results = tree.busquedaLineal(images,search_range)
+        print("Tardo: --- %s segundos para encontrar los %s puntos linealmente" % (time.time() - start_time, len(results)))
