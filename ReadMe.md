@@ -4,7 +4,7 @@
 
 Un foto mosaico es una imagen generada a partir de imágenes más pequeñas colocadas en forma de mosaico. 
 
-![](https://github.com/LuisPuli2/FotoMosaico/tree/master/sample/noche.jpg-m-mosaicoo.jpg)
+![alt text](https://github.com/LuisPuli2/FotoMosaico/blob/master/sample/noche.jpg-m-mosaicoo.jpg "Te amo, Lis")
 
 ## ¿Cómo hacer un foto mosaico?
 
