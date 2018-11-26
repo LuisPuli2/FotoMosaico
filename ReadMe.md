@@ -4,7 +4,7 @@
 
 Un foto mosaico es una imagen generada a partir de imágenes más pequeñas colocadas en forma de mosaico. 
 
-![](/home/duis/Documents/ProcesoDigitalImagenes/FotoMosaico/sample/noche.jpg-m-mosaicoo.jpg)
+![](https://github.com/LuisPuli2/FotoMosaico/tree/master/sample/noche.jpg-m-mosaicoo.jpg)
 
 ## ¿Cómo hacer un foto mosaico?
 
@@ -38,12 +38,16 @@ Ahora bien, como ya sabemos, cuando de encontrar un elemento de manera eficiente
 
 ## Árbol de Rangos de Búsqueda
 
-**El árbol de búsqueda de rangos** es una estructura de datos que se construye a partir de puntos en el espacio y es utilizada para hacer queries de la forma **[x:x'] *X* [y,y'] *X* [z,z'] *X* ...**  y el árbol regresaŕa todos los puntos que están dentro de esos límites con un tiempo de respuesta de ***O(log²(n) + k)*** .
+**El árbol de búsqueda de rangos** es una estructura de datos que se construye a partir de puntos en el espacio y es utilizada para hacer queries de la forma **[x:x'] *x* [y,y'] *x* [z,z'] *x* ...**  y el árbol regresaŕa todos los puntos que están dentro de esos límites con un tiempo de respuesta de ***O(log²(n) + k)*** donde n es el número total de puntos y k el número de puntos reportados dentro de ese rango.
 
-Una estructura de datos para realizar queries de búsqueda de la forma:
-[x:x']*x*[y:y']*x*[z:z']*x*... 
-Con un tiempo de respuesta de O(log²(n) + k), donde k es el número de puntos que está dentro de ese rango. Para este caso utilizaremos tres dimensiones.
+### ¿Cómo funciona?
 
+pass
+
+
+
+
+## Ejecución del Programa. 
 
 Para ejecutar el programa, primero hay que especificarle la carpeta raíz que contiene las imágenes para calcular el promedio de cada una de ellas y llenar la "base de datos". Para ello, hay que ejecutar el script Promedio.py. Ya que son alrededor de 60,000 imágenes tomará algo de tiempo.
 
