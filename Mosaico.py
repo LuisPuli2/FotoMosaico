@@ -112,6 +112,8 @@ def filtroMosaico(imagen,mosaicoX,mosaicoY,tree):
 			img = img.resize((mosaicoX*tam,mosaicoY*tam))
 			new_im.paste(img, (i*tam,j*tam))
 
+	new_im.save("Brouly2.jpg")
+
 	return new_im
 
 
@@ -119,7 +121,7 @@ if __name__ == '__main__':
 	### Desmadres del Duis ###
 	tree = AVLTree()
 	# Lo llenamos con la información preprocesada.
-	tree.fillImageDB("BD2.txt")
+	tree.fillImageDB("BD.txt")
 	while True:
 		try:
 			nombre_imagen = raw_input("Ingresa el nombre de la imagen(Con todo y extensión): ")
