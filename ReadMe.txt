@@ -1,1 +1,0 @@
-Primer esqueleto del proyecto para generar foto mosaicos.
