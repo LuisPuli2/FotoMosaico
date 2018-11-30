@@ -4,7 +4,7 @@
 
 Un foto mosaico es una imagen generada a partir de imágenes más pequeñas colocadas en forma de mosaico. 
 
-![alt text](https://github.com/LuisPuli2/FotoMosaico/blob/master/sample/noche.jpg-m-mosaicoo.jpg "Te amo, Lis")
+![alt text](https://github.com/LuisPuli2/FotoMosaico/blob/master/sample/noche.jpg-m-mosaicoo.jpg "GG")
 
 ## ¿Cómo hacer un foto mosaico?
 
@@ -38,21 +38,30 @@ Ahora bien, como ya sabemos, cuando de encontrar un elemento de manera eficiente
 
 ## Árbol de Rangos de Búsqueda
 
-**El árbol de búsqueda de rangos** es una estructura de datos que se construye a partir de puntos en el espacio y es utilizada para hacer queries de la forma **[x:x'] *x* [y,y'] *x* [z,z'] *x* ...**  y el árbol regresaŕa todos los puntos que están dentro de esos límites con un tiempo de respuesta de ***O(log²(n) + k)*** donde n es el número total de puntos y k el número de puntos reportados dentro de ese rango.
+**El árbol de búsqueda de rangos** es una estructura de datos que se construye a partir de puntos en el espacio y es utilizada para hacer queries de la forma **[x:x'] *x* [y,y'] *x* [z,z'] *x* ...**  y el árbol regresaŕa todos los puntos que están dentro de esos límites con un tiempo de respuesta de ***O(log²(n) + k)*** donde ***n*** es el número total de puntos y ***k*** el número de puntos reportados dentro de ese rango.
 
 ### ¿Cómo funciona?
 
-pass
+Una busqueda de rangos en **2** dimensiones es esencialmente **2** sub búsquedas en una dimensión, uno sobre la coordenada ***x*** y otro sobre la coordenada ***y***. Esto da la idea de dividir el conjunto de puntos ***x*** alternativamente sobre el eje ***x*** y el eje ***y***. 
 
+Sea ***P*** el conjunto de ***n*** puntos en el plano que queremos preprocesar para nuestra búsqueda rectangular. Sea **[x:x'] x [y:y']**el query de búsqueda. Lo que haremos es, primero enfocarnos en los puntos cuya coordenada ***x*** esté en **[x:x']**. Si solo nos fijamos en la coordenada ***x***, eso es una búsqueda en una dimensión y eso lo sabemos resolver: Árbol binario de búsqueda de los ***n*** puntos ordenado respecto a su coordenada ***x***. Con esto en mente, el algoritmo para resolver nuestros queries es de la siguiente forma. Buscamos con ***x*** y ***x'*** en el árbol hasta que obtengamos el nodo ***V split*** donde la ruta de búsqueda se divide. Desde el hijo izquierdo de ***V split*** buscamos con ***x***, ***y*** para cada nodo ***v*** donde la ruta de la búsqueda de ***x*** va a la izquierda, reportamos todos los puntos en el subárbol derecho. De manera similar, desde el hijo izquerdo de ***V split*** buscamos con ***x'***, y para cada nodo ***v*** donde la ruta de la búsqueda de ***x'*** va a la derecha, reportamos todos los puntos que viven en el subárbol izquierdo de ***v***. Cuando llegamos a las hojas ***M*** y ***M'*** donde las dos rutas terminan para ver si ellas un punto en el rango. En efecto, seleccionamos una colección de ***O(log n)*** subárboles, qué, juntos contienen exactamente todos los puntos cuya coordenada ***x*** está en ***[x:x']***.
 
+![alt text](https://github.com/LuisPuli2/FotoMosaico/blob/master/sample/RangeTree-2.png "GGGG")
 
+Vamos a llamar a ese subconjunto de puntos almacenados en las hojas de el subárbol con ***v*** como raíz el Subconjunto canónico de ***v***. Por ejemplo, el  subconjunto canónico de la raíz del árbol es todo el conjunto ***P***. El subconjunto canónico de una hoja es simplemente el punto almacenado en la hoja. Denotaremos el subconjunto canónico de ***v*** como ***P(v)***. Hasta ahora, hemos visto que el subconjunto de puntos que viven dentro del rango ***[x:x']*** puede ser expresado como la unión disjunta de ***O(log n)*** subconjuntos canónicos; Esos son el conjunto ***P(v)*** de los nodos ***v*** que son la raíz de los subárboles seleccionados. Sin embargo, no estamos interesados en todos los puntos de ese subconjunto, nos interesan los puntos que viven en ***P(v)*** y que además su coordenada ***y*** vive en ***[y:y']***. Esto involucra otra búsqueda en una dimensión, pero solo sobre el subconjunto canónico ***P(v)***. Esto nos deja la siguiente estructura para queries de rangos rectangulares en un conjunto ***P*** de ***n*** puntos en el plano:
+* El árbol principal es un árbol binario de búsqueda balanceado ***T*** ordenado respecto a la coordenada de ***x*** de los puntos de ***P***.
+* Para cada nodo ***v*** del árbol ***T***, el subconjunto canónico ***P(v)*** es almacenado en un árbol binario de búsqueda balanceado ***Tassoc(v)*** ordenado sobre la coordenada ***y*** de los puntos de ***P(v)***. El nodo ***v*** almacena un apuntador a la raíz de ***Tassoc(v)***, y lo llamaremos estructura asociada de ***v***.
+
+La estructura queda de la siguiente forma:
+
+![alt text](https://github.com/LuisPuli2/FotoMosaico/blob/master/sample/RangeTree.png "GGG")
+
+El query para buscar todos los puntos que viven dentro ***[x:x']x[y:y']*** se realiza primero buscando en el árbol principal y obtener el subconjunto canónico ***P(v)*** donde todos los puntos que están en ***P(v)*** viven en ***[x:x']***. Después en el árbol asociado a ***v***, buscamos todos los puntos que viven en ***[y:y']*** y esos puntos serán los que viven en ***[x:x']x[y:y']***.
+
+El árbol de rangos puede ser adaptado para ***n*** dimensiones. En nuestro caso, fue para 3.
 
 ## Ejecución del Programa. 
 
 Para ejecutar el programa, primero hay que especificarle la carpeta raíz que contiene las imágenes para calcular el promedio de cada una de ellas y llenar la "base de datos". Para ello, hay que ejecutar el script Promedio.py. Ya que son alrededor de 60,000 imágenes tomará algo de tiempo.
 
-Ya con la base de datos generada, hay que ejecutar el script Main.py, tardará un poco en abrir la interfaz por qué primero construirá el árbol de rangos. Ya abierta la interfaz, lo demás es historia.
-
-
-**Love of mi life... 
-Bring it back, bring it back, don't take it away from me because you don't know what it means to me. (Lis <3)**
+Ya con la base de datos generada, hay que ejecutar el script Main.py, tardará un poco en abrir la interfaz por qué primero construirá el árbol de rangos. Ya abierta la interfaz, lo demás, es historia.
