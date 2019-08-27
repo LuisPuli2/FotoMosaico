@@ -1,6 +1,6 @@
 # **Foto Mosaico: Proyecto Final para Proceso Digital de Imágenes.**
 
-## Primero que nada, ¿Qué es un foto mosaico? 
+## Primero que nada, ¿qué es un foto mosaico? 
 
 Un foto mosaico es una imagen generada a partir de imágenes más pequeñas colocadas en forma de mosaico. 
 
@@ -8,7 +8,7 @@ Un foto mosaico es una imagen generada a partir de imágenes más pequeñas colo
 
 ## ¿Cómo hacer un foto mosaico?
 
-La elaboración de un foto mosaico requiere tener una colección de imágenes (mientras más grandes y variadas mejor) para formar la imagen de nuestro interes. La creación de la imagen se divide en dos pasos esenciales: 
+La elaboración de un foto mosaico requiere tener una colección de imágenes (mientras más grandes y variadas mejor) para formar la imagen de nuestro interés. La creación de la imagen se divide en dos pasos esenciales: 
 
 * Obtener el mosaico de la foto, con regiones cuadradas de su color promedio.
 * Para cada región cuadrada del mosaico, buscar la imagen cuyo color promedio sea el más cercano al color del mosaico. 
